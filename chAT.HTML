@@ -1,0 +1,152 @@
+import React, { useState, useRef, useEffect } from 'react';
+
+const PortfolioChatbot = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { text: "Hi there! I'm your portfolio assistant. How can I help you today?", sender: 'bot', id: 1 }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Auto-scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages, isOpen]);
+
+  // Basic responses based on keywords
+  const getBotResponse = (text) => {
+    const lowercaseText = text.toLowerCase();
+    
+    if (lowercaseText.includes('hello') || lowercaseText.includes('hi') || lowercaseText.includes('hey')) {
+      return "Hello! Nice to meet you. Feel free to ask about my skills, experience, or projects.";
+    } else if (lowercaseText.includes('experience') || lowercaseText.includes('work')) {
+      return "I have extensive experience in web development, focusing on React, Node.js, and modern frontend technologies. My previous roles include positions at leading tech companies where I developed scalable applications.";
+    } else if (lowercaseText.includes('skills') || lowercaseText.includes('technologies')) {
+      return "My technical skills include: React, JavaScript, TypeScript, Node.js, HTML5, CSS3, Tailwind, MongoDB, SQL, Git, and AWS services. I'm also experienced in responsive design and performance optimization.";
+    } else if (lowercaseText.includes('project') || lowercaseText.includes('portfolio')) {
+      return "My portfolio includes several notable projects: an e-commerce platform, a real-time analytics dashboard, and a social media app. Each demonstrates different aspects of my development capabilities.";
+    } else if (lowercaseText.includes('education') || lowercaseText.includes('degree')) {
+      return "I hold a Bachelor's degree in Computer Science with additional certifications in Web Development and UI/UX Design.";
+    } else if (lowercaseText.includes('contact') || lowercaseText.includes('hire') || lowercaseText.includes('email')) {
+      return "I'd be happy to discuss potential opportunities! You can reach me at contact@yourdomain.com or connect with me on LinkedIn.";
+    } else if (lowercaseText.includes('thanks') || lowercaseText.includes('thank you')) {
+      return "You're welcome! Is there anything else you'd like to know?";
+    } else {
+      return "Thanks for your message! If you're interested in specific details about my work or want to discuss a project, please let me know or contact me directly through the Contact section.";
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    // Add user message
+    const userMessage = { text: inputText, sender: 'user', id: messages.length + 1 };
+    setMessages([...messages, userMessage]);
+    setInputText('');
+    setIsTyping(true);
+
+    // Simulate bot typing
+    setTimeout(() => {
+      const botResponse = { text: getBotResponse(inputText), sender: 'bot', id: messages.length + 2 };
+      setMessages(prev => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 1000 + Math.random() * 500);
+  };
+
+  return (
+    <div className="fixed bottom-5 right-5 z-50">
+      {/* Chat button */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center"
+      >
+        {isOpen ? (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        )}
+      </button>
+
+      {/* Chat window */}
+      <div className={`${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} origin-bottom-right transition-all duration-300 absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-lg shadow-xl overflow-hidden flex flex-col border border-gray-200`}>
+        {/* Chat header */}
+        <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
+          <h3 className="font-medium">Portfolio Assistant</h3>
+          <div className="flex space-x-2">
+            <div className="h-2 w-2 rounded-full bg-green-400"></div>
+            <span className="text-xs">Online</span>
+          </div>
+        </div>
+
+        {/* Messages area */}
+        <div className="flex-1 p-4 overflow-y-auto max-h-96 bg-gray-50">
+          {messages.map((message) => (
+            <div 
+              key={message.id} 
+              className={`mb-4 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div 
+                className={`p-3 rounded-lg max-w-[80%] ${
+                  message.sender === 'user' 
+                    ? 'bg-blue-600 text-white rounded-tr-none' 
+                    : 'bg-white text-gray-800 border border-gray-200 rounded-tl-none shadow-sm'
+                }`}
+              >
+                {message.text}
+              </div>
+            </div>
+          ))}
+          {isTyping && (
+            <div className="flex justify-start mb-4">
+              <div className="bg-white text-gray-800 p-3 rounded-lg border border-gray-200 rounded-tl-none shadow-sm flex items-center space-x-1">
+                <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input area */}
+        <form onSubmit={handleSubmit} className="border-t border-gray-200 p-4 bg-white">
+          <div className="flex items-center">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 py-2 px-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              ref={inputRef}
+            />
+            <button 
+              type="submit" 
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-r-lg transition-colors duration-300"
+              disabled={!inputText.trim()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default PortfolioChatbot;
